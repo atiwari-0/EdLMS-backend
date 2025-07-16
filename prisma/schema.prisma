@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STUDENT
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  PAID
+}
+
+enum DoubtStatus {
+  OPEN
+  RESPONDED
+  RESOLVED
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  password       String
+  role           Role
+
+  studentProfile StudentProfile?
+  teacherProfile TeacherProfile?
+  adminProfile   AdminProfile?
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model StudentProfile {
+  id         String     @id @default(uuid())
+  user       User       @relation(fields: [userId], references: [id])
+  userId     String     @unique
+
+  class      ClassRoom  @relation(fields: [classId], references: [id])
+  classId    String
+
+  attendances Attendance[]
+  payments    Payment[]
+  doubts      Doubt[]
+}
+
+model TeacherProfile {
+  id         String       @id @default(uuid())
+  user       User         @relation(fields: [userId], references: [id])
+  userId     String       @unique
+
+  subject    Subject      @relation(fields: [subjectId], references: [id])
+  subjectId  String
+
+  classes    ClassRoom[]  @relation("TeacherClassrooms")
+  courses    Course[]
+}
+
+model AdminProfile {
+  id       String @id @default(uuid())
+  user     User   @relation(fields: [userId], references: [id])
+  userId   String @unique
+}
+
+model ClassRoom {
+  id       String           @id @default(uuid())
+  name     String
+
+  students StudentProfile[]
+  teachers TeacherProfile[] @relation("TeacherClassrooms")
+}
+
+model Subject {
+  id       String           @id @default(uuid())
+  name     String           @unique
+  courses  Course[]
+  doubts   Doubt[]
+  teachers TeacherProfile[]
+}
+
+model Course {
+  id          String     @id @default(uuid())
+  title       String
+  description String
+  
+  subject     Subject    @relation(fields: [subjectId], references: [id])
+  subjectId   String
+
+  teacher     TeacherProfile @relation(fields: [teacherId], references: [id])
+  teacherId   String
+
+  notes       Note[]
+  sessions    Session[]
+}
+
+
+model Session {
+  id         String      @id @default(uuid())
+  title      String
+  startTime  DateTime
+  endTime    DateTime
+  isLive     Boolean
+  link       String
+
+  course     Course      @relation(fields: [courseId], references: [id])
+  courseId   String
+
+  attendance Attendance[]
+}
+
+model Attendance {
+  id         String     @id @default(uuid())
+
+  session    Session    @relation(fields: [sessionId], references: [id])
+  sessionId  String
+
+  student    StudentProfile @relation(fields: [studentId], references: [id])
+  studentId  String
+
+  status     AttendanceStatus
+}
+
+model Payment {
+  id         String     @id @default(uuid())
+  student    StudentProfile @relation(fields: [studentId], references: [id])
+  studentId  String
+
+  amount     Float
+  dueDate    DateTime
+  status     PaymentStatus
+  paidAt     DateTime?
+}
+
+model Note {
+  id         String     @id @default(uuid())
+  title      String
+  fileUrl    String
+  uploadedAt DateTime   @default(now())
+
+  course     Course     @relation(fields: [courseId], references: [id])
+  courseId   String
+}
+
+model Doubt {
+  id         String     @id @default(uuid())
+  title      String
+  content    String
+  status     DoubtStatus
+  createdAt  DateTime   @default(now())
+
+  subject    Subject    @relation(fields: [subjectId], references: [id])
+  subjectId  String
+
+  student    StudentProfile @relation(fields: [studentId], references: [id])
+  studentId  String
+}
