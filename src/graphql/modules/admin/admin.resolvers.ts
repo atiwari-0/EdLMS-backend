@@ -1,9 +1,10 @@
+import { generateUniqueEmail } from "../../../lib/emailgenerator";
 import type { GraphQLContext } from "../../../types/context";
 import bcrypt from 'bcrypt';
 
-const generateCredentials = (name: string, role: "STUDENT" | "TEACHER") => {
+const generateCredentials = async (name: string, role: "STUDENT" | "TEACHER" , prisma: GraphQLContext["prisma"] ) => {
   const formattedName = name.trim().toLowerCase().replace(/\s+/g, '');
-  const email = `${formattedName}@edlms.com`;
+  const email = await generateUniqueEmail(name,prisma);
   const password = `${role.toLowerCase()}.${formattedName}`;
   return { email, password };
 };
@@ -18,11 +19,11 @@ export const adminResolvers = {
       if (user?.role !== "ADMIN") throw new Error("Unauthorized");
 
       const { name, classId } = input;
-      const { email, password } = generateCredentials(name, "STUDENT");
+      const { email, password } = await generateCredentials(name, "STUDENT", prisma);
       const hashed = await bcrypt.hash(password,10);
 
       const createdUser = await prisma.user.create({
-        data: {
+      data: {
           name,
           email,
           password: hashed,
@@ -30,6 +31,13 @@ export const adminResolvers = {
           studentProfile: {
             create: {
               classId,
+              payments: {
+                create: {
+                  amount: 373000,
+                  dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 
+                  status: "PENDING",
+                },
+              },
             },
           },
         },
@@ -47,6 +55,43 @@ export const adminResolvers = {
 
     },
 
+    updateStudent: async (
+      _ : unknown,
+      { input } : any,
+      { prisma, user }:GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+      const { id, name, classId } = input;
+
+      const student = await prisma.studentProfile.update({
+        where: { id },
+        data: {
+          classId,
+          user: name ? { update: { name } } : undefined,
+        },
+        include: { user: true, class: true },
+      });
+
+      return student;
+    },
+
+    deleteStudent: async (
+      _ : unknown,
+      { id } : any,
+      { prisma, user } : GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+      const student = await prisma.studentProfile.delete({
+        where: { id },
+      });
+
+      await prisma.user.delete({ where: { id: student.userId } });
+
+      return true;
+    },
+
+
     createTeacher: async (
       _: unknown,
       { input }: any,
@@ -55,7 +100,7 @@ export const adminResolvers = {
       if (user?.role !== "ADMIN") throw new Error("Unauthorized");
 
       const { name, subjectId, classIds } = input;
-      const { email, password } = generateCredentials(name, "TEACHER");
+      const { email, password } = await generateCredentials(name, "TEACHER",prisma);
       const hashed = await bcrypt.hash(password,10);
 
       const createdUser = await prisma.user.create({
@@ -86,6 +131,41 @@ export const adminResolvers = {
       });
     },
 
+    updateTeacher: async (
+      _ : unknown,
+      { input } : any,
+      { prisma, user } : GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+      const { id, name, subjectId, classIds } = input;
+
+      const teacher = await prisma.teacherProfile.update({
+        where: { id },
+        data: {
+          subjectId,
+          classes: classIds ? { set: classIds.map((id : any) => ({ id })) } : undefined,
+          user: name ? { update: { name } } : undefined,
+        },
+        include: { user: true, subject: true, classes: true },
+      });
+
+      return teacher;
+    },
+
+    deleteTeacher: async (
+      _ : unknown,
+      { id } : any,
+      { prisma, user } : GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+
+      const teacher = await prisma.teacherProfile.delete({ where: { id } });
+      await prisma.user.delete({ where: { id: teacher.userId } });
+
+      return true;
+    },
+
+
     createClassRoom: async (
       _: unknown,
       { input }: any,
@@ -100,6 +180,29 @@ export const adminResolvers = {
       });
     },
 
+    updateClassRoom: async (
+      _ : unknown,
+      { input } : any,
+      { prisma, user } : GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+      return prisma.classRoom.update({
+        where: { id: input.id },
+        data: { name: input.name },
+      });
+    },
+
+    deleteClassRoom: async (
+      _ : unknown,
+      { id } : any,
+      { prisma, user } : GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+      await prisma.classRoom.delete({ where: { id } });
+      return true;
+    },
+
+
     createSubject: async (
       _: unknown,
       { input }: any,
@@ -113,6 +216,29 @@ export const adminResolvers = {
         },
       });
     },
+
+    updateSubject: async (
+      _ : unknown,
+      { input } : any,
+      { prisma, user } : GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+      return prisma.subject.update({
+        where: { id: input.id },
+        data: { name: input.name },
+      });
+    },
+
+    deleteSubject: async (
+      _ : unknown,
+      { id } : any,
+      { prisma, user } : GraphQLContext
+    ) => {
+      if (user?.role !== "ADMIN") throw new Error("Unauthorized");
+      await prisma.subject.delete({ where: { id } });
+      return true;
+    },
+
   },
   Query: {
     students: async (_: any, __: any, { prisma }: GraphQLContext) => {

@@ -11,7 +11,7 @@ export const authTypeDefs = `
   }
 
   type User {
-    id: String!
+    id: ID!
     name: String!
     email: String!
     role: Role!
@@ -23,5 +23,6 @@ export const authTypeDefs = `
 
   type Mutation {
     login(email: String!, password: String!): AuthPayload!
+    logout: Boolean!
   }
 `;

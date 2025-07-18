@@ -50,6 +50,10 @@ export const authResolvers = {
         throw new Error('Unexpected error.');
       }
     },
+    logout: async (_: unknown, __: unknown, { res }: GraphQLContext) => {
+      res.setHeader('Set-Cookie', 'token=; Max-Age=0; Path=/; HttpOnly');
+      return true;
+    }
   },
 
   Query: {

@@ -6,48 +6,47 @@ export const adminTypeDefs = /* GraphQL */ `
     STUDENT
   }
  type User {
-    id: String!
+    id: ID!
     name: String!
     email: String!
     role: Role!
   }
 
   type Student {
-    id: String!
-    userId: String!
-    classId: String!
+    id: ID!
+    classId: ID!
     user: User!
     class: ClassRoom!
   }
 
   type Teacher {
-    id: String!
-    userId: String!
-    subjectId: String!
+    id: ID!
+    userId: ID!
+    subjectId: ID!
     user: User!
     subject: Subject!
     classes: [ClassRoom!]!
   }
 
   type ClassRoom {
-    id: String!
+    id: ID!
     name: String!
   }
 
   type Subject {
-    id: String!
+    id: ID!
     name: String!
   }
 
   input CreateStudentInput {
     name: String!
-    classId: String!
+    classId: ID!
   }
 
   input CreateTeacherInput {
     name: String!
-    subjectId: String!
-    classIds: [String!]!
+    subjectId: ID!
+    classIds: [ID!]!
   }
 
   input CreateClassInput {
@@ -57,12 +56,47 @@ export const adminTypeDefs = /* GraphQL */ `
   input CreateSubjectInput {
     name: String!
   }
+  
+  input UpdateStudentInput {
+    id: ID!
+    name: String
+    classId: ID
+  }
+
+  input UpdateTeacherInput {
+    id: ID!
+    name: String
+    subjectId: ID
+    classIds: [ID!]
+  }
+
+  input UpdateClassInput {
+    id: ID!
+    name: String
+  }
+
+  input UpdateSubjectInput {
+    id: ID!
+    name: String
+  }
 
   type Mutation {
     createStudent(input: CreateStudentInput!): Student!
     createTeacher(input: CreateTeacherInput!): Teacher!
     createClassRoom(input: CreateClassInput!): ClassRoom!
     createSubject(input: CreateSubjectInput!): Subject!
+
+    updateStudent(input: UpdateStudentInput!): Student!
+    deleteStudent(id: ID!): Boolean!
+
+    updateTeacher(input: UpdateTeacherInput!): Teacher!
+    deleteTeacher(id: ID!): Boolean!
+
+    updateClassRoom(input: UpdateClassInput!): ClassRoom!
+    deleteClassRoom(id: ID!): Boolean!
+
+    updateSubject(input: UpdateSubjectInput!): Subject!
+    deleteSubject(id: ID!): Boolean!
   }
 
   type Query {

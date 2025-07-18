@@ -31,6 +31,13 @@ enum DoubtStatus {
   RESOLVED
 }
 
+enum SessionStatus {
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id             String          @id @default(uuid())
   name           String
@@ -83,6 +90,7 @@ model ClassRoom {
 
   students StudentProfile[]
   teachers TeacherProfile[] @relation("TeacherClassrooms")
+  sessions Session[] 
 }
 
 model Subject {
@@ -116,9 +124,13 @@ model Session {
   endTime    DateTime
   isLive     Boolean
   link       String
+  status     SessionStatus @default(SCHEDULED)
 
   course     Course      @relation(fields: [courseId], references: [id])
   courseId   String
+
+  class      ClassRoom   @relation(fields: [classId], references: [id])
+  classId    String
 
   attendance Attendance[]
 }
