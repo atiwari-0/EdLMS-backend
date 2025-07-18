@@ -1,7 +1,7 @@
 import { signJwt } from '../../../lib/jwt';
 import type { GraphQLContext } from '../../../types/context';
 import type { LoginInput } from '../../../types/auth';
-
+import bcrypt from 'bcrypt';
 export const authResolvers = {
   Mutation: {
     login: async (
@@ -28,7 +28,7 @@ export const authResolvers = {
           throw new Error('Invalid credentials');
         }
 
-        const isValid = await Bun.password.verify(password, user.password);
+        const isValid = await bcrypt.compare(password, user.password);
         if (!isValid) {
           console.warn('❌ Login failed: Incorrect password');
           throw new Error('Invalid credentials');
