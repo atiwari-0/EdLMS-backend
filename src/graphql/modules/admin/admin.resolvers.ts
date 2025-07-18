@@ -56,9 +56,9 @@ export const adminResolvers = {
     },
 
     updateStudent: async (
-      _ : unknown,
-      { input } : any,
-      { prisma, user }:GraphQLContext
+      _: unknown,
+      { input }: { input: { id: string; name?: string; classId?: string } },
+      { prisma, user }: GraphQLContext
     ) => {
       if (user?.role !== "ADMIN") throw new Error("Unauthorized");
       const { id, name, classId } = input;
@@ -66,8 +66,16 @@ export const adminResolvers = {
       const student = await prisma.studentProfile.update({
         where: { id },
         data: {
-          classId,
-          user: name ? { update: { name } } : undefined,
+          class: classId
+            ? {
+                connect: { id: classId }
+              }
+            : undefined,
+          user: name
+            ? {
+                update: { name }
+              }
+            : undefined,
         },
         include: { user: true, class: true },
       });
@@ -141,14 +149,25 @@ export const adminResolvers = {
 
       const teacher = await prisma.teacherProfile.update({
         where: { id },
-        data: {
-          subjectId,
-          classes: classIds ? { set: classIds.map((id : any) => ({ id })) } : undefined,
-          user: name ? { update: { name } } : undefined,
-        },
+          data: {
+            subject: subjectId
+              ? {
+                  connect: { id: subjectId }
+                }
+              : undefined,
+            classes: classIds
+              ? {
+                  set: classIds.map((id: string) => ({ id }))
+                }
+              : undefined,
+            user: name
+              ? {
+                  update: { name }
+                }
+              : undefined,
+          },
         include: { user: true, subject: true, classes: true },
       });
-
       return teacher;
     },
 
