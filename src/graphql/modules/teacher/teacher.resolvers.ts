@@ -1,4 +1,5 @@
 import type { GraphQLContext } from "../../../types/context";
+import { AttendanceStatus, DoubtStatus } from "@prisma/client";
 
 export const teacherResolvers = {
   Query: {
@@ -8,7 +9,7 @@ export const teacherResolvers = {
       { prisma }: GraphQLContext
     ) => {
       return prisma.teacherProfile.findUnique({
-        where: { id },
+        where: { userId : id },
         include: {
           user: true,
           subject: true,
@@ -38,6 +39,44 @@ export const teacherResolvers = {
         },
       });
     },
+
+    getTeacherDoubts: async (
+      _: any,
+      { teacherId } : { teacherId: string },
+      { prisma }: GraphQLContext
+    ) => {
+      const teacher = await prisma.teacherProfile.findUnique({
+        where: { id: teacherId },
+        include: { subject: true },
+      });
+      if (!teacher) throw new Error("Teacher not found");
+
+      return prisma.doubt.findMany({
+        where: {
+          subjectId: teacher.subjectId,
+        },
+        include: {
+          subject: true,
+          student: true,
+        },
+      });
+    },
+
+    getCourseNotes: async (
+      _: any,
+      { courseId }: { courseId: string },
+      { prisma }: GraphQLContext
+    ) => {
+      return prisma.note.findMany({
+        where: {
+          courseId,
+        },
+        orderBy: {
+          uploadedAt: 'desc',
+        },
+      });
+    },
+
 
     getCourseSessions: async (
       _: any,
@@ -70,8 +109,13 @@ export const teacherResolvers = {
         data: {
           title,
           description,
-          subjectId,
-          teacherId,
+          subject: { connect: { id: subjectId } }, 
+          teacher: { connect: { id: teacherId } },
+        },
+        include: {
+          subject: true, 
+          sessions: true,
+          notes: true,
         },
       });
     },
@@ -130,5 +174,54 @@ export const teacherResolvers = {
         },
       });
     },
+
+    markAttendance: async (
+    _: any,
+    { sessionId, studentId, status }: { sessionId: string; studentId: string; status: AttendanceStatus },
+    { prisma }: GraphQLContext
+  ) => {
+    const existing = await prisma.attendance.findFirst({
+      where: { sessionId, studentId },
+    });
+
+    if (existing) {
+      return prisma.attendance.update({
+        where: { id: existing.id },
+        data: { status },
+        include: {
+          session: true,
+          student: { include: { user: true } },
+        },
+      });
+    }
+
+    return prisma.attendance.create({
+      data: {
+        sessionId,
+        studentId,
+        status,
+      },
+      include: {
+        session: true,
+        student: { include: { user: true } },
+      },
+    });
+  },
+
+  respondToDoubt: async (
+    _: any,
+    { doubtId, status }: { doubtId: string; status: DoubtStatus },
+    { prisma }: GraphQLContext
+  ) => {
+    return prisma.doubt.update({
+      where: { id: doubtId },
+      data: { status },
+      include: {
+        subject: true,
+        student: { include: { user: true } },
+      },
+    });
+  },
+
   },
 };

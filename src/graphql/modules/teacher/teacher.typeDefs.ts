@@ -56,6 +56,35 @@ export const teacherTypeDefs = `
     status: SessionStatus!
   }
 
+  enum DoubtStatus {
+    OPEN
+    RESPONDED
+    RESOLVED
+  }
+
+  type Doubt {
+    id: ID!
+    title: String!
+    content: String!
+    status: DoubtStatus!
+    createdAt: String!
+    subject: Subject!
+    student: StudentProfile!
+  }
+
+  enum AttendanceStatus {
+    PRESENT
+    ABSENT
+    LATE
+  }
+
+  type Attendance {
+    id: ID!
+    session: Session!
+    student: StudentProfile!
+    status: AttendanceStatus!
+  }
+
   type Note {
     id: ID!
     title: String!
@@ -64,15 +93,19 @@ export const teacherTypeDefs = `
   }
 
 type Query {
-  getTeacherProfile(id: ID!): TeacherProfile
+  getTeacherProfile(id: ID!): TeacherProfile  
   getTeacherCourses(teacherId: ID!): [Course!]!
   getCourseSessions(courseId: ID!): [Session!]!
+  getTeacherDoubts(teacherId: ID!): [Doubt!]!
+  getCourseNotes(courseId: ID!): [Note!]!
 }
 
 type Mutation {
   createCourse(title: String!, description: String!, subjectId: ID!, teacherId: ID!): Course!
   uploadNote(courseId: ID!, title: String!, fileUrl: String!): Note!
   scheduleSession(courseId: ID!, classId: ID!, title: String!, startTime: String!, endTime: String!, link: String!): Session!
+  markAttendance(sessionId: ID!, studentId: ID!, status: AttendanceStatus!): Attendance!
+  respondToDoubt(doubtId: ID!, status: DoubtStatus!): Doubt!
 }
 
 `;
