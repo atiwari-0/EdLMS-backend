@@ -62,11 +62,15 @@ export const teacherResolvers = {
       });
     },
 
-    getCourseNotes: async (
+    getTeacherCourseNotes: async (
       _: any,
       { courseId }: { courseId: string },
       { prisma }: GraphQLContext
     ) => {
+      const course = await prisma.course.findUnique({
+        where:{ id : courseId}
+      })
+      if (!course) throw new Error("Course not Found.")
       return prisma.note.findMany({
         where: {
           courseId,
@@ -78,11 +82,15 @@ export const teacherResolvers = {
     },
 
 
-    getCourseSessions: async (
+    getTeacherCourseSessions: async (
       _: any,
       { courseId }: { courseId: string },
       { prisma }: GraphQLContext
     ) => {
+      const course = await prisma.course.findUnique({
+        where:{ id : courseId}
+      })
+      if (!course) throw new Error("Course not Found.")
       return prisma.session.findMany({
         where: { courseId },
       });

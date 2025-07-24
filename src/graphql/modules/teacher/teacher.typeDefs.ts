@@ -95,9 +95,9 @@ export const teacherTypeDefs = `
 type Query {
   getTeacherProfile(id: ID!): TeacherProfile  
   getTeacherCourses(teacherId: ID!): [Course!]!
-  getCourseSessions(courseId: ID!): [Session!]!
+  getTeacherCourseSessions(courseId: ID!): [Session!]!
   getTeacherDoubts(teacherId: ID!): [Doubt!]!
-  getCourseNotes(courseId: ID!): [Note!]!
+  getTeacherCourseNotes(courseId: ID!): [Note!]!
 }
 
 type Mutation {

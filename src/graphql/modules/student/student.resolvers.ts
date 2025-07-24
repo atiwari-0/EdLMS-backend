@@ -36,11 +36,11 @@ export const studentResolvers = {
       });
     },
 
-    getCourseNotes: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
+    getStudentCourseNotes: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
       return prisma.note.findMany({ where: { courseId } });
     },
 
-    getCourseSessions: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
+    getStudentCourseSessions: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
       return prisma.session.findMany({ where: { courseId } });
     },
 

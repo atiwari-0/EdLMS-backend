@@ -108,8 +108,8 @@ export const studentTypeDefs = `
     type Query {
     getStudentProfile(id: ID!): StudentProfile
     getStudentCourses(studentId: ID!): [Course!]!
-    getCourseNotes(courseId: ID!): [Note!]!
-    getCourseSessions(courseId: ID!): [Session!]!
+    getStudentCourseNotes(courseId: ID!): [Note!]!
+    getStudentCourseSessions(courseId: ID!): [Session!]!
     getStudentAttendance(studentId: ID!): [Attendance!]!
     getStudentPayments(studentId: ID!): [Payment!]!
     getLiveSessions(studentId: ID!): [Session!]!
