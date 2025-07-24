@@ -95,6 +95,30 @@ export const teacherResolvers = {
         where: { courseId },
       });
     },
+
+    getTeacherSessions: async (
+      _: any,
+      { teacherId }: { teacherId: string },
+      { prisma }: GraphQLContext
+    ) => {
+      return prisma.session.findMany({
+        where: {
+          course: {
+            teacherId: teacherId,
+          },
+        },
+        include: {
+          course: {
+            include: {
+              subject: true,
+            },
+          },
+        },
+        orderBy: {
+          startTime: 'asc',
+        },
+      });
+    },
   },
 
   Mutation: {

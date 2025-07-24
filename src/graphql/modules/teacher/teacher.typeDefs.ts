@@ -54,6 +54,7 @@ export const teacherTypeDefs = `
     isLive: Boolean!
     link: String!
     status: SessionStatus!
+    course: Course!
   }
 
   enum DoubtStatus {
@@ -98,6 +99,7 @@ type Query {
   getTeacherCourseSessions(courseId: ID!): [Session!]!
   getTeacherDoubts(teacherId: ID!): [Doubt!]!
   getTeacherCourseNotes(courseId: ID!): [Note!]!
+  getTeacherSessions(teacherId: ID!): [Session!]!
 }
 
 type Mutation {

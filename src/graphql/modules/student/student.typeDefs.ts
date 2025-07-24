@@ -55,6 +55,7 @@ export const studentTypeDefs = `
     isLive: Boolean!
     link: String!
     status: SessionStatus!
+    course: Course! 
     }
 
     type Attendance {
