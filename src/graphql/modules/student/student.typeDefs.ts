@@ -3,51 +3,51 @@ export const studentTypeDefs = `
     ADMIN
     TEACHER
     STUDENT
-    }
+  }
 
-    enum AttendanceStatus {
+  enum AttendanceStatus {
     PRESENT
     ABSENT
     LATE
-    }
+  }
 
-    enum PaymentStatus {
+  enum PaymentStatus {
     PENDING
     PROCESSING
     PAID
-    }
+  }
 
-    enum DoubtStatus {
+  enum DoubtStatus {
     OPEN
     RESPONDED
     RESOLVED
-    }
+  }
 
-    enum SessionStatus {
+  enum SessionStatus {
     SCHEDULED
     ONGOING
     COMPLETED
     CANCELLED
-    }
+  }
 
-    type User {
+  type User {
     id: ID!
     name: String!
     email: String!
     role: Role!
-    }
+  }
 
-    type ClassRoom {
+  type ClassRoom {
     id: ID!
     name: String!
-    }
+  }
 
-    type Subject {
+  type Subject {
     id: ID!
     name: String!
-    }
+  }
 
-    type Session {
+  type Session {
     id: ID!
     title: String!
     startTime: String!
@@ -55,69 +55,76 @@ export const studentTypeDefs = `
     isLive: Boolean!
     link: String!
     status: SessionStatus!
-    course: Course! 
-    }
+    course: Course!
+  }
 
-    type Attendance {
+  type Attendance {
     id: ID!
     session: Session!
     status: AttendanceStatus!
-    }
+  }
 
-    type Payment {
+  type Payment {
     id: ID!
     amount: Float!
     dueDate: String!
     status: PaymentStatus!
     paidAt: String
-    }
+  }
 
-    type Doubt {
+  type Doubt {
     id: ID!
     title: String!
     content: String!
     status: DoubtStatus!
     createdAt: String!
     subject: Subject!
-    }
+  }
 
-    type Note {
+  type Note {
     id: ID!
     title: String!
     fileUrl: String!
     uploadedAt: String!
-    }
+  }
 
-    type Course {
+  type Teacher {
+    id: ID!
+    user: User!
+  }
+
+  type Course {
     id: ID!
     title: String!
     description: String!
     subject: Subject!
+    teacher: Teacher!
     sessions: [Session!]!
     notes: [Note!]!
-    }
+  }
 
-    type StudentProfile {
+  type StudentProfile {
     id: ID!
     user: User!
     class: ClassRoom!
     attendances: [Attendance!]!
     payments: [Payment!]!
     doubts: [Doubt!]!
-    }
+  }
 
-    type Query {
+  type Query {
     getStudentProfile(id: ID!): StudentProfile
-    getStudentCourses(studentId: ID!): [Course!]!
-    getStudentCourseNotes(courseId: ID!): [Note!]!
+    getStudentSubjects(studentId: ID!): [Subject!]!
+    getStudentCoursesBySubject(studentId: ID!, subjectId: ID!): [Course!]!
+    getCourseNotes(courseId: ID!): [Note!]!
     getStudentCourseSessions(courseId: ID!): [Session!]!
     getStudentAttendance(studentId: ID!): [Attendance!]!
     getStudentPayments(studentId: ID!): [Payment!]!
     getLiveSessions(studentId: ID!): [Session!]!
-    }
+  }
 
-    type Mutation {
+  type Mutation {
     askDoubt(studentId: ID!, subjectId: ID!, title: String!, content: String!): Doubt!
     payForPayment(paymentId: ID!): Payment!
-    }
+  }
 `;

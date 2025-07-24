@@ -4,7 +4,7 @@ export const studentResolvers = {
   Query: {
     getStudentProfile: async (_: any, { id }: { id: string }, { prisma }: GraphQLContext) => {
       return prisma.studentProfile.findUnique({
-        where: { id },
+        where: { userId : id },
         include: {
           user: true,
           class: true,
@@ -15,29 +15,76 @@ export const studentResolvers = {
       });
     },
 
-    getStudentCourses: async (_: any, { studentId }: { studentId: string }, { prisma }: GraphQLContext) => {
+    getStudentSubjects: async (
+      _: any,
+      { studentId }: { studentId: string },
+      { prisma }: GraphQLContext
+    ) => {
       const student = await prisma.studentProfile.findUnique({
         where: { id: studentId },
-        include: { class: true },
-      });
-      if (!student) throw new Error("Student not found");
-
-      return prisma.course.findMany({
-        where: {
-          sessions: {
-            some: { classId: student.classId },
+        include: {
+          class: {
+            include: {
+              teachers: {
+                include: { subject: true },
+              },
+            },
           },
         },
-        include: {
-          subject: true,
-          sessions: true,
-          notes: true,
-        },
       });
+      if (!student || !student.class) return [];
+      const allSubjects = student.class.teachers.map((teacher) => teacher.subject);
+      const uniqueSubjects = Array.from(
+        new Map(allSubjects.map((subj) => [subj.id, subj])).values()
+      );
+
+      return uniqueSubjects;
     },
 
-    getStudentCourseNotes: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
-      return prisma.note.findMany({ where: { courseId } });
+
+
+
+    getStudentCoursesBySubject: async (
+        _: any,
+        { studentId, subjectId }: { studentId: string; subjectId: string },
+        { prisma }: GraphQLContext
+      ) => {
+        const student = await prisma.studentProfile.findUnique({
+          where: { id: studentId },
+          include: {
+            class: {
+              include: {
+                teachers: true
+              }
+            }
+          }
+        });
+
+        if (!student) throw new Error("Student not found");
+
+        const isSubjectLinkedToStudent = student.class.teachers.some(
+          (teacher) => teacher.subjectId === subjectId
+        );
+
+        if (!isSubjectLinkedToStudent) throw new Error("Subject not linked to student's class");
+
+        return prisma.course.findMany({
+          where: {
+            subjectId: subjectId
+          },
+          include: {
+            subject: true,
+            teacher: { include: { user: true } },
+            sessions: true
+          }
+        });
+      },
+
+
+    getCourseNotes: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
+      return prisma.note.findMany({
+        where: { courseId }
+      });
     },
 
     getStudentCourseSessions: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
