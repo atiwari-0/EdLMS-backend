@@ -158,6 +158,23 @@ export const studentResolvers = {
         },
       });
     },
+
+    getStudentDoubts: async (
+      _:any,
+      { studentId }: {studentId: string},
+      { prisma } : GraphQLContext
+    ) => {
+      const doubt = await prisma.doubt.findMany({
+        where: { studentId },
+         include: {
+         subject: true,
+         },
+        orderBy: {
+        createdAt: 'desc',
+        },
+      });
+      return doubt;
+    }
   },
 
   Mutation: {

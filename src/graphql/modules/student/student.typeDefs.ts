@@ -121,6 +121,7 @@ export const studentTypeDefs = `
     getStudentAttendance(studentId: ID!): [Attendance!]!
     getStudentPayments(studentId: ID!): [Payment!]!
     getLiveSessions(studentId: ID!): [Session!]!
+    getStudentDoubts(studentId: ID!): [Doubt!]!
   }
 
   type Mutation {
