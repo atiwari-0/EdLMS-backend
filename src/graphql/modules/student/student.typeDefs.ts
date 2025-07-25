@@ -117,7 +117,7 @@ export const studentTypeDefs = `
     getStudentSubjects(studentId: ID!): [Subject!]!
     getStudentCoursesBySubject(studentId: ID!, subjectId: ID!): [Course!]!
     getCourseNotes(courseId: ID!): [Note!]!
-    getStudentCourseSessions(courseId: ID!): [Session!]!
+    getStudentSessions(studentId: ID!): [Session!]!
     getStudentAttendance(studentId: ID!): [Attendance!]!
     getStudentPayments(studentId: ID!): [Payment!]!
     getLiveSessions(studentId: ID!): [Session!]!

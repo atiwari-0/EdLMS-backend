@@ -87,9 +87,52 @@ export const studentResolvers = {
       });
     },
 
-    getStudentCourseSessions: async (_: any, { courseId }: { courseId: string }, { prisma }: GraphQLContext) => {
-      return prisma.session.findMany({ where: { courseId } });
-    },
+   getStudentSessions: async (
+  _: any,
+  { studentId }: { studentId: string }, 
+  { prisma }: GraphQLContext
+) => {
+  try {
+    const student = await prisma.studentProfile.findUnique({
+      where: { id: studentId },
+      select: {
+        classId: true
+      }
+    });
+
+    if (!student) {
+      throw new Error("Student not found");
+    }
+
+    const sessions = await prisma.session.findMany({
+      where: {
+        classId: student.classId
+      },
+      include: {
+        course: {
+          include: {
+            subject: true,
+            teacher: {
+              include: {
+                user: true
+              }
+            },
+            notes: true
+          }
+        }
+      },
+      orderBy: {
+        startTime: "asc"
+      }
+    });
+
+    return sessions;
+  } catch (error) {
+    console.error("Error in getStudentSessions:", error);
+    throw new Error("Failed to fetch sessions for student");
+  }
+},
+
 
     getStudentAttendance: async (_: any, { studentId }: { studentId: string }, { prisma }: GraphQLContext) => {
       return prisma.attendance.findMany({
