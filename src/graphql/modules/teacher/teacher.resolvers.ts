@@ -1,6 +1,22 @@
 import type { GraphQLContext } from "../../../types/context";
 import { AttendanceStatus, DoubtStatus } from "@prisma/client";
 
+async function assertTeacherAccessByTeacherId(prisma: any, user: any, targetTeacherId: string) {
+  if (!user) throw new Error("Not authenticated");
+  if (user.role !== "TEACHER") throw new Error("Not authorized");
+
+  const profile = await prisma.teacherProfile.findUnique({
+    where: { userId: user.id },
+    select: { id: true },
+  });
+
+  if (!profile) throw new Error("Teacher profile not found");
+
+  if (profile.id !== targetTeacherId) {
+    throw new Error("Forbidden: Cannot access another teacher's data");
+  }
+}
+
 export const teacherResolvers = {
   Query: {
     getTeacherProfile: async (
@@ -28,8 +44,9 @@ export const teacherResolvers = {
     getTeacherCourses: async (
       _: any,
       { teacherId }: { teacherId: string },
-      { prisma }: GraphQLContext
+      { user, prisma }: GraphQLContext
     ) => {
+      await assertTeacherAccessByTeacherId(prisma, user, teacherId);
       return prisma.course.findMany({
         where: { teacherId },
         include: {
@@ -43,8 +60,9 @@ export const teacherResolvers = {
     getTeacherDoubts: async (
       _: any,
       { teacherId } : { teacherId: string },
-      { prisma }: GraphQLContext
+      { user, prisma }: GraphQLContext
     ) => {
+      await assertTeacherAccessByTeacherId(prisma, user, teacherId);
       const teacher = await prisma.teacherProfile.findUnique({
         where: { id: teacherId },
         include: { subject: true },
@@ -99,8 +117,9 @@ export const teacherResolvers = {
     getTeacherSessions: async (
       _: any,
       { teacherId }: { teacherId: string },
-      { prisma }: GraphQLContext
+      { user, prisma }: GraphQLContext
     ) => {
+      await assertTeacherAccessByTeacherId(prisma, user, teacherId);
       return prisma.session.findMany({
         where: {
           course: {
@@ -135,8 +154,9 @@ export const teacherResolvers = {
         subjectId: string;
         teacherId: string;
       },
-      { prisma }: GraphQLContext
+      { user, prisma }: GraphQLContext
     ) => {
+      await assertTeacherAccessByTeacherId(prisma, user, teacherId);
       return prisma.course.create({
         data: {
           title,
